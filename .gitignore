@@ -1,0 +1,32 @@
+# Python Cache
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual enviroments
+
+.venv/
+venv/
+
+
+# Environment varialbes
+
+
+.env 
+
+# Jupyter
+
+.ipynb_checkpoints/
+
+#OS junk
+
+.DS_Store
+Thumbs.db
+
+
+# Datasets
+
+# *.csv
+
