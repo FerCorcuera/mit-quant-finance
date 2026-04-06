@@ -30,3 +30,9 @@ Thumbs.db
 
 # *.csv
 
+# R files
+
+.Rhistory
+.Rdata
+.Ruserdata
+.Rproj
