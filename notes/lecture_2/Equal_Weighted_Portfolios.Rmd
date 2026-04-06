@@ -1,0 +1,169 @@
+---
+title: "Equal Weighted Portfolios"
+author: '18.642'
+date: "2024-09-10"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+  pdf_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warn = -1)
+defaultW <- getOption("warn")
+options(warn = -1)
+```
+
+
+\newpage
+# 1. Load Libraries and data 
+
+## 1.1  Load libraries ----
+
+```{r, echo=FALSE, message = FALSE}
+
+# 0. Load packages ----
+library("tidyquant")
+library("tidyverse")
+library("fpp2")
+library("broom")
+
+```
+## 1.2 Load RData file with stocks_prices and stocks_tbl ----
+
+```{r,echo=TRUE}
+load(file="SP500_data_subset.RData")
+```
+
+# 2. Process data 
+```{r,echo=TRUE}
+dim(stocks_prices)
+# On 9/10/2024 1426 days and 488 stocks
+head(stocks_prices)
+```
+
+## 2.1 Extract starting prices only into stocks_prices0 ----
+```{r,echo=TRUE}
+stocks_prices0<-as.matrix(stocks_prices[,-1])
+
+head(stocks_prices0[,1:10])
+```
+
+## 2.2  Create portfolio investing $1000, equal weighted across SP500 stocks
+
+### 2.2.1 Define q vector of shares with equal dollar values at first date 
+```{r,echo=TRUE}
+q = (1000/nrow(stocks_tbl))/stocks_prices[1,-1]
+q0 = as.matrix((as.numeric(q)))
+v1000_0 = stocks_prices0 %*% q0
+v1000_0.xts<- xts(x=v1000_0, order.by=stocks_prices$date)
+date_start<- as.character(stocks_prices$date[1])
+```
+
+### 2.2.2 Define data frame df_port_SP500
+```{r,echo=TRUE}
+df_port_SP500<-data.frame(
+  date=stocks_prices$date,
+  value=v1000_0,
+  portfolio="Equal-Weighted SP500")
+```
+### 2.2.3 Plot Value of $1000 invested at start
+```{r,echo=TRUE}
+ggplot(df_port_SP500, aes(x=date,y=value)) + geom_line()+
+  ggtitle(paste(c("Value $1000 Invested ", date_start, " \n",
+                  "Equal-Weighted Portfolio"), collapse="")) +
+  scale_y_continuous(labels= scales::dollar_format())
+```
+
+## 2.3  Create portfolio investing $1000, equal weighted across AANG stocks
+
+
+```{r,echo=TRUE}
+
+list_AANG<-c("AMZN","AAPL","NFLX","GOOG")
+
+
+index_AANG<-match(list_AANG, 
+                  dimnames(stocks_prices0)[[2]],nomatch=0)
+```
+
+### 2.3.1 Define q vector of shares with equal dollar values 
+
+```{r,echo=TRUE}
+# Use share vector of same length
+q_AANG<-0*q
+stocks_prices0[1,"AAPL"]
+for (symbol in list_AANG){
+  print(symbol)
+  q_symbol<- (1000/length(index_AANG))/stocks_prices0[1,symbol]
+  print(q_symbol)
+q_AANG[symbol]<-q_symbol
+}
+
+q_AANG_0 = as.matrix((as.numeric(q_AANG)))
+v1000_AANG_0 = stocks_prices0 %*% q_AANG_0
+```
+
+### 2.3.2 Define data frame df_port_AANG 
+```{r,echo=TRUE}
+df_port_AANG<-data.frame(
+  date=stocks_prices$date,
+  value=v1000_AANG_0,
+  portfolio="Equal-Weighted AANG")
+
+df_port_all<-rbind(
+  df_port_SP500,
+  df_port_AANG
+)
+```
+
+### 2.3.3 Plot Value of $1000 equal-weighted invested at start
+```{r,echo=TRUE}
+ggplot(df_port_all, aes(x=date,y=value,col=portfolio)) + geom_line()+
+  ggtitle(paste(c("Value $1000 Invested 2007-01-01\n",
+                  "Equal-Weighted SP500 \nvs Equal-Weighted AANG"), collapse="")) +
+  scale_y_continuous(labels= scales::dollar_format())+
+  theme(legend.position="bottom")
+
+tail(df_port_all)
+```
+
+### 2.3.4 Find final and initial values of components
+
+```{r,echo=TRUE}
+
+n0<-nrow(stocks_prices0)
+Values_initial<-q_AANG_0*stocks_prices0[1,] 
+Values_initial[Values_initial!=0]
+Values_final<-q_AANG_0*stocks_prices0[n0,] 
+Values_final[Values_final!=0]
+```
+
+### 2.3.5 Plot time series of values of individual components 
+```{r,echo=TRUE}
+initialize=TRUE
+symbol="AMZN"
+for (symbol in list_AANG){
+  df_symbol<- data.frame(
+    date=stocks_prices$date,
+    Value = as.numeric(
+      as.numeric(q_AANG[symbol])*stocks_prices0[,symbol]),
+    symbol = symbol)
+  if (initialize){
+    df_all<-df_symbol
+    initialize=FALSE} else{
+    df_all<-rbind(df_all, df_symbol)
+    }
+}
+
+tail(df_all)
+ggplot(df_all, aes(x=date,y=Value, col=symbol))+
+  geom_line() +
+  theme(legend.position = "bottom")+
+  ggtitle("Value of $250 Invested on 2019-01-01")+
+  scale_y_continuous(labels= scales::dollar_format())
+```  
+

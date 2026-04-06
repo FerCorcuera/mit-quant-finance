@@ -1,0 +1,221 @@
+---
+title: "Script_SP500"
+author: '18.642'
+date: "2024-09-10"
+output:
+  pdf_document:
+    toc: true
+  html_document:
+    toc: true
+---
+
+# 0. Load Libraries and Define Functions
+
+```{r }
+# 0.0  Load libraries ----
+# Loads tidyquant, lubridate, xts, quantmod, TTR, and PerformanceAnalytics
+library(tidyverse)
+library(tidyquant)  
+library(broom)
+```
+```{r }
+#0.1 Define functions ----
+#The following functions explicitly compute annual, monthly and weekly returns
+get_annual_returns <- function(stock.returns) {
+  stock.returns %>%
+    tq_transmute(select     = adjusted, 
+                 mutate_fun = periodReturn, 
+                 type       = "log", 
+                 period     = "yearly")
+}
+
+get_monthly_returns <- function(stock.returns) {
+  stock.returns %>%
+    tq_transmute(select     = adjusted, 
+                 mutate_fun = periodReturn, 
+                 type       = "log", 
+                 period     = "monthly")
+}
+
+get_weekly_returns <- function(stock.returns) {
+  stock.returns %>%
+    tq_transmute(select     = adjusted, 
+                 mutate_fun = periodReturn, 
+                 type       = "log", 
+                 period     = "weekly")
+}
+
+get_daily_returns <- function(stock.returns) {
+  stock.returns %>%
+    tq_transmute(select     = adjusted, 
+                 mutate_fun = periodReturn, 
+                 type       = "log", 
+                 period     = "daily")
+}
+
+```
+
+# 1. Collect stock price data from yahoo ----
+
+##    1.1 Get data on all stocks in the SP00 ----
+```{r}
+stocks_tbl <- tq_index("SP500")
+stocks_tbl
+
+# # Symbol "BRK.B" gives error from tq_get  
+# # Change to "BRK-B"
+# rowindex_0<-which(stocks_tbl$symbol=="BRK.B")
+# stocks_tbl$symbol[rowindex_0]<-"BRK-B"
+# 
+# # Change to "BF.B" to "BF-B"
+# rowindex_0<-which(stocks_tbl$symbol=="BF.B")
+# stocks_tbl$symbol[rowindex_0]<-"BF-B"
+# 
+# # Drop  symbol "-"
+index_dash<-which(stocks_tbl$symbol=="-")  
+stocks_tbl0<-stocks_tbl[-c( index_dash),]  
+
+# Collect all symbols in stocks_tbl0
+
+stocks_symbols<-stocks_tbl0$symbol
+```
+
+
+
+## 1.2 Set start and end dates for price data ----
+
+```{r}
+date_start= "2019-01-01"
+date_end= "2024-08-31"
+
+
+# Collecting data from large group can take
+# significant amount of time
+#     (on 9/12/2023, less than 3 minutes)
+# To monitor progress we split large group into subgroups
+```
+
+
+## 1.3  Split large group of stocks into subgroups ----
+
+```{r}
+stocks_tbl0$group<-floor((c(1:nrow(stocks_tbl0))-1)/50)
+
+
+list_group<-unique(stocks_tbl0$group)
+
+#for (group0 in list_group[-c(1:4)]){
+  
+for (group0 in list_group) {
+  stocks_data <- stocks_tbl0 %>%
+    filter(group==group0) %>%
+    select(symbol, company) %>%
+    tq_get(from = date_start, to=date_end)
+assign(paste("stocks_data",group0,sep="."),
+       stocks_data)
+print(c("End for group ", as.character(group0)))
+}
+
+# If any warnings occur, determine which symbol generated message
+# Revise symbol name (as above, replacing "." by "-", or delete
+# as was case for symbol = "-", which corresponded to US dollar).
+
+```
+
+## 1.4 Bind together data from all groups 
+
+```{r}
+stocks_data<-rbind(
+  stocks_data.0,
+  stocks_data.1,
+  stocks_data.2,
+  stocks_data.3,
+  stocks_data.4,
+  stocks_data.5,
+  stocks_data.6,
+  stocks_data.7,
+  stocks_data.8,
+  stocks_data.9,
+  stocks_data.10)
+dim(stocks_data)
+
+```
+
+## 1.5 Convert stocks_data to time series matrix 
+
+```{r}
+stocks_data1 <- stocks_data %>% 
+  dplyr::select(symbol, date, adjusted) %>% 
+  dplyr::filter(!is.na(adjusted)) %>% 
+  dplyr::rename(price = adjusted)
+  
+
+stocks_tsmatrix<- stocks_data1 %>%
+  pivot_wider(names_from = symbol, values_from = price)
+
+dim(stocks_tsmatrix)
+# On 9/10/2024
+# dim(stocks_tsmatrix)
+# [1] 1426  504
+names(stocks_tsmatrix)
+```
+
+## 1.6 Subset out stocks with no missing data
+
+```{r}
+missingcount_bydate<-apply(is.na(stocks_tsmatrix),1,sum)
+plot(x=stocks_tsmatrix$date, y=missingcount_bydate,type="l")
+
+# On 9/12/2022, 11 stocks had some missing values on whole period from date_start to date_end
+
+# Define stocks_tsmatrix2 to be  stocks with no missing values
+
+missingcount_bystock<-apply(is.na(stocks_tsmatrix),2,sum)
+plot(x=c(1:ncol(stocks_tsmatrix)),
+          y=missingcount_bystock,type="l")
+
+sum(missingcount_bystock==0)
+# 488 stocks had no missing prices on period
+
+which_cols_nomissing<-which(missingcount_bystock==0)
+
+# Extract data for stocks with no missing prices ----
+dim(stocks_tsmatrix)
+stocks_tsmatrix0<-stocks_tsmatrix[,which_cols_nomissing]
+
+```
+
+## 1.7  Create stocks_tbl0 corresponding to symbols in stocks_tsmatrix
+
+```{r}
+# names(stocks_tsmatrix0)
+dim(stocks_tsmatrix0) # columns equal to 1(date) + (number of stocks)
+which_symbols_tsmatrix0<-match(names(stocks_tsmatrix0)[-1],
+                               stocks_tbl0$symbol,nomatch=0)
+stocks_tbl0_tsmatrix0<- stocks_tbl0[which_symbols_tsmatrix0,]
+
+dim(stocks_tsmatrix0)
+```
+
+
+# 2. Save Workspaces
+
+## 2.1 Save R workspace SP000_data_all.RData ----
+
+
+```{r}
+save(file="SP500_data_all.RData", list=ls())
+
+```
+
+## 2.2 Save R workspace SP000_data_subset.RData ----
+
+```{r}
+stocks_prices<-stocks_tsmatrix0
+
+stocks_tbl<-stocks_tbl0_tsmatrix0     
+
+
+save(file="SP500_data_subset.RData", list=c("stocks_tbl","stocks_prices"))
+```
+
