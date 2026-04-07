@@ -1,7 +1,7 @@
 ---
 title: "Equal Weighted Portfolios"
 author: '18.642'
-date: "2024-09-10"
+date: "2026-04-06"
 output:
   html_document:
     toc: true
@@ -123,7 +123,7 @@ df_port_all<-rbind(
 ### 2.3.3 Plot Value of $1000 equal-weighted invested at start
 ```{r,echo=TRUE}
 ggplot(df_port_all, aes(x=date,y=value,col=portfolio)) + geom_line()+
-  ggtitle(paste(c("Value $1000 Invested 2007-01-01\n",
+  ggtitle(paste(c("Value $1000 Invested 2022-01-01\n",
                   "Equal-Weighted SP500 \nvs Equal-Weighted AANG"), collapse="")) +
   scale_y_continuous(labels= scales::dollar_format())+
   theme(legend.position="bottom")
@@ -143,6 +143,7 @@ Values_final[Values_final!=0]
 ```
 
 ### 2.3.5 Plot time series of values of individual components 
+
 ```{r,echo=TRUE}
 initialize=TRUE
 symbol="AMZN"
@@ -163,7 +164,82 @@ tail(df_all)
 ggplot(df_all, aes(x=date,y=Value, col=symbol))+
   geom_line() +
   theme(legend.position = "bottom")+
-  ggtitle("Value of $250 Invested on 2019-01-01")+
+  ggtitle("Value of $250 Invested on 2022-01-01")+
   scale_y_continuous(labels= scales::dollar_format())
+
+
 ```  
 
+```{r,echo=TRUE}
+# we compute the new weights at 2020603
+library(dplyr)
+
+df_weights <- df_all %>%
+  group_by(date) %>%
+  mutate(
+    total_value = sum(Value),
+    weight = Value / total_value
+  )
+df_weights %>%
+  filter(date == max(date))
+
+```
+
+
+
+
+```{r,echo=TRUE}
+ggplot(df_weights, aes(x = date, y = weight, color = symbol)) +
+  geom_line() +
+  theme(legend.position = "bottom") +
+  ggtitle("Portfolio Weights Over Time")
+
+```
+
+
+```{r,echo=TRUE}
+df_portfolio <- df_weights %>%
+  group_by(date) %>%
+  summarise(portfolio_value = sum(Value)) %>%
+  arrange(date)
+
+# beginning
+df_portfolio %>% slice(1)
+
+# end
+df_portfolio %>% slice(n())
+
+```
+
+
+
+
+
+```{r,echo=TRUE}
+last_date <- df_weights %>%
+  group_by(symbol) %>%
+  summarise(last_date = max(date)) %>%
+  summarise(common_last_date = min(last_date)) %>%
+  pull(common_last_date)
+# withotu rebalancing, GOOOGLE sotck dominated the portfolio
+df_weights %>%
+  filter(date == last_date)
+```
+
+
+
+```{r,echo=TRUE}
+initial <- df_portfolio %>% slice(1) %>% pull(portfolio_value)
+final   <- df_portfolio %>% slice(n()) %>% pull(portfolio_value)
+
+# the final return of the portfolio after two years was 50%!
+return <- (final / initial) - 1
+return
+```
+
+```{r,echo=TRUE}
+ggplot(df_portfolio, aes(x = date, y = portfolio_value)) +
+  geom_line() +
+  ggtitle("Portfolio Value Over Time")
+
+```

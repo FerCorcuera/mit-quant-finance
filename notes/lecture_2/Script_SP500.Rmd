@@ -13,7 +13,9 @@ output:
 
 ```{r }
 # 0.0  Load libraries ----
-# Loads tidyquant, lubridate, xts, quantmod, TTR, and PerformanceAnalytics
+# Loads tidyverse: library that loads a se of packages desiged for data science 
+# tidyquant: resource to analzy financial data
+#,broom: converts messy data from.R statistical functions into tidy dfs
 library(tidyverse)
 library(tidyquant)  
 library(broom)
@@ -85,8 +87,8 @@ stocks_symbols<-stocks_tbl0$symbol
 ## 1.2 Set start and end dates for price data ----
 
 ```{r}
-date_start= "2019-01-01"
-date_end= "2024-08-31"
+date_start= "2022-01-01"
+date_end= "2026-03-31"
 
 
 # Collecting data from large group can take

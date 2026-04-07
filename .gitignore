@@ -32,7 +32,9 @@ Thumbs.db
 
 # R files
 
-.Rhistory
-.Rdata
-.Ruserdata
-.Rproj
+*.Rhistory
+*.RData
+*.Ruserdata
+*.Rapp.history
+*.Rproj.user/
+
