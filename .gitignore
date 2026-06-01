@@ -38,3 +38,5 @@ Thumbs.db
 *.Rapp.history
 *.Rproj.user/
 
+.Rproj.user
+.positai
