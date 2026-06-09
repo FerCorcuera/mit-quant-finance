@@ -1,0 +1,226 @@
+---
+title: "Testing the Random Walk"
+author: "Paul F. Mende"
+date: "Summer 2021"
+output: 
+  html_notebook:
+  df_print: paged
+  toc: yes
+---
+
+*Notebooks in R Markdown*: This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing a code chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*.
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+# Preliminaries
+
+Before we get started, let's install a few **packages**.
+
+- The `install.packages` command is run **once** to download the software to your computer.
+- The `library` command is run **one time per session** in order to load a packages functions and make them available.
+
+If you have never installed them, uncomment the lines in the block below and run it one time.
+
+```{r prelim}
+install.packages("tidyverse")                # To install a single package
+install.packages("tidyquant")                # Tools for quant finance
+install.packages(c("vrtest","ggplot2"))      # Additional packages for Variance Ratios and for plotting
+```
+
+Now we'll load packages.
+
+```{r loading}
+library(tidyverse)
+library(tidyquant)
+library(ggplot2)
+library(vrtest)
+```
+
+# Tootsie Roll
+
+Let's load some data and look at default summary stats for data from Tootsie Roll (TR). The file TR.csv contains daily prices, adjusted for splits and dividends, from Yahoo Finance. (Tootsie Roll actually has an unusual stock dividend history. By using the Adjusted Close data, we don't need to worry about those details for now.)
+
+**Technical note:** Data is often exchanged using "flat files," which are plain text files that can be read using a simple text editor. Although they are usually structured, format details can differ; so it's essential to pay attention to elements that might vary from one source to another such as
+
+- Column headers (yes/no, naming conventions)
+- Line breaks (CR, LF, CR/LF)
+- Delimiters
+- Escape characters
+- Ordering
+- Data types (integer/float, text/numeric)
+- Date formatting (YMD, MDY, %Y/%y, etc.)
+- Data errors!
+
+Advice: don't take anything for granted. Check your data!
+
+```{r input data from file}
+# Read in data file -- set your own local directory for file location
+
+TR <- read_csv("TR.csv")
+
+
+```
+
+```{r Fetch some test data from Yahoo! Finance}
+
+
+# Define query parameters
+ticker <- "TR"
+date_first <- "1987-12-31"
+date_last  <- "2017-12-31"
+
+#Get the data
+TR <- tq_get(ticker, from=date_first, to=date_last)
+
+```
+
+Here is what the price looks like over time
+
+```{r price charts}
+plot(TR$date,TR$adjusted,type="l",xlab="Time",ylab="Price",main="TR Adjusted Price 1988-2017");grid()
+```
+
+Now we extract the time series of prices and compute the series of 1-day returns, $$r_t = \log(P_t/P_{t-1}) = \log(P_t/P_0) - \log(P_{t-1}/P_0)$$ .
+
+```{r daily returns}
+
+# Compute the returns.  Remember that the first return is recorded on the second trade date. That's why we retrieve prices before the first trade date of interest.
+
+P    <- TR$adjusted
+r    <- diff(log(P))
+N    <- length(r)
+
+# The returns can also be stored as a new column in TR.  
+
+TR$r <- c(NA, diff(log(TR$adjusted)))
+
+# Trim off the first row, which has return NA
+TR   <- TR[-1,]
+
+
+
+plot(TR$date,TR$r,type="l",xlab="Time",ylab="Price",main="TR Daily Returns 1988-2017");grid()
+```
+
+The daily return series is noisy, and the mean value is barely visible. However the scale of the noise fluctuations is not constant over time. This is the phenomenon of time-varying volatility. Compare the graph above with the simulation below, in which simulated returns have the same average volatility and zero mean.
+
+```{r white noise}
+plot(TR$date,rnorm(nrow(TR))*sd(TR$r),type="l",ylim=c(-0.18,0.18),xlab="Time",ylab="Price",main="White Noise Process with TR Volatility");grid()
+```
+
+## Summary statistics and return distribution
+
+These are high-level summary stats that R provides for any data frame.
+
+```{r summary stats}
+summary(TR)
+```
+
+# Annualization conventions
+
+We typically report return and risk measures in annualized terms. By convention, we assume a typical year has 252 trading days and use the following rules:
+
+- Annualized return = 252 \* (Daily return)
+- Annualized std. dev. = sqrt(252) \* (Daily std. dev)
+
+For monthly returns, replace the 252 by 12.
+
+```{r annualization}
+ 
+mean(r)*252     # Mean return for TR (annualize by 252 days/year)
+sd(r)*sqrt(252) # Volatility of TR (annualize with square root!)
+
+summary(r)
+```
+
+The histogram of returns has fat tails (and therefore a thin middle). Because it is the unconditional distribution of returns, independent of their time ordering, it tells nothing about the causal structure of return correlations.
+
+```{r return distribution}
+hist(r, breaks=50)
+```
+
+# Lo & MacKinlay
+
+Following Lo & MacKinlay, we ask whether the measured sample variance of returns grows linearly as function of the observation interval.
+
+```{r variance plot}
+Variance <- var(diff(log(P))) 
+
+for (n in 2:100) {
+  Variance[n] <- var(diff(log(P[seq(from=n, to=length(P), by=n)])))
+}
+
+plot(Variance,xlab="n",main="Variance of Returns From n-day Observations");grid()
+
+```
+
+Looks linear, doesn't it? Is that good enough? What about the slope? What about the raggedness on the right side of the graph? Is that simply noise due to have a smaller number of samples when the window size gets large? Or could there be a systematic deviation of the linear rule hiding in the graph?
+
+# Variance and Ratios
+
+Here we define functions for $\widehat \sigma^2_c$, which is a function of a series of observations $X_t$ and an aggregation length $q$.
+
+The $z$-statistics and $p$-values follow from the distribution of the estimator as a random variable
+
+```{r variance metrics defined}
+variance.c <- function(X, q) {
+# Compute variance statistic from overlapping q-period windows
+# See Lo & MacKinlay (1988), p. 47, Eq. 12 
+  
+  T     <- length(X) - 1  
+  mu    <- (X[T+1] - X[1])/T  
+  m     <- (T-q)*(T-q+1)*q/T
+  sumsq <- 0  
+  for (t in q:T) { 
+    sumsq <- sumsq + (X[t+1] - X[t-q+1] - q*mu)^2 
+  }  
+  return(sumsq/m)
+}
+
+z <- function(X, q) {
+# Compute sampling statistic for variance ratio
+# See Lo & MacKinlay (1988), p. 47, last line (after Eqs. 12-14)  
+  T <- length(X) - 1  
+  c <- sqrt(T*(3*q)/(2*(2*q-1)*(q-1)))  
+  M <- variance.c(X,q)/variance.c(X,1) - 1  
+  z <- c*M
+  return(z)
+}
+
+Vc      <- 0; for (q in 1:100) {Vc[q] <- variance.c(log(P),q)}
+zstats  <- 0; for (q in 2:100) {zstats[q] <- z(log(P),q) }
+pValues <- 2*pnorm(-abs(zstats))
+barplot(zstats, ylab="z",xlab="q",main="z Statistics of Variance Ratio Test")
+
+```
+
+## Interpreting the test statistics
+
+The test statistic $z(q)$ was constructed to be normally distributed as ${\cal N}(0,1)$ if the data followed a random walk and scaled accordingly. From the graph, we see that all of these $z$-statistics are greater than two in magnitude -- and they all have the same sign. They are not consistent with the first random walk hypothesis, and their systematic deviation suggests that the model needs to be extended rather than discarded by including serial correlation.
+
+```{r scaled volatility}
+sigma <- sqrt(252)*sd(diff(log(P))) 
+
+for (n in 2:100) {
+  sigma[n] <- sqrt(252/n)*sd(diff(log(P[seq(from=n, to=length(P), by=n)])))
+}
+
+barplot(sigma,xlab="n",ylab="Standard Deviation (annualized) / sqrt(n)",main="Volatility Scaling of Returns From n-day Observations (TR)");grid()
+
+```
+
+```{r scaled volatility simulation}
+P.MC <- exp(cumsum(rnorm(N)*0.02)) # Monte Carlo returns 32% vol
+sigma.MC <- sqrt(252)*sd(diff(log(P.MC))) 
+
+for (n in 2:100) {
+  sigma.MC[n] <- sqrt(252/n)*sd(diff(log(P.MC[seq(from=n, to=N, by=n)])))
+}
+
+barplot(sigma.MC,xlab="n",ylab="Standard Deviation (annualized) / sqrt(n)",main="Volatility Scaling of Returns From n-day Observations (Sim)");grid()
+
+```
