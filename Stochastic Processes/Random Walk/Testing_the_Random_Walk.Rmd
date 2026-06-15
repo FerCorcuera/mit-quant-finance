@@ -38,6 +38,7 @@ library(tidyverse)
 library(tidyquant)
 library(ggplot2)
 library(vrtest)
+
 ```
 
 # Tootsie Roll
