@@ -66,10 +66,9 @@ Each concept is organized in its own directory and may contain:
 For each concept I try to:
 
 1. Understand the mathematical theory.
-2. Implement the concept in R (when provided by the course).
-3. Reimplement the same concept in Python.
-4. Run simulations and numerical experiments.
-5. Connect the concept to quantitative finance applications.
+2. Implement the concept in concept in Python.
+3. Run simulations and numerical experiments.
+4. Connect the concept to quantitative finance applications.
 
 This repository serves as both a learning journal and a long-term reference for quantitative finance, machine learning, and financial engineering topics.
 
@@ -79,5 +78,3 @@ This repository serves as both a learning journal and a long-term reference for 
 
 - R
 - Python
-
-The original course material is primarily taught using **R**. As part of my learning process, I also implement the same concepts in **Python** to strengthen my programming skills and build intuition across both ecosystems.
