@@ -1,8 +1,8 @@
 # MIT Quant Finance
 
-This repository contains my notes, exercises, simulations, and programming practice based on:
+This repo documents my personal journey studying quantitative finance, mathematics, probability, stochastic processes and numerical methods. It contains my own notes , simulations and implementations in python. The study content comes from:
 
-- **MITx MicroMasters – Mathematical Methods for Quantitative Finance**
+- Quant finance courses and programs that I took.
 - **MIT OpenCourseWare – Topics in Mathematics with Applications in Finance**
 - Additional material from:
   - *Probabilistic Machine Learning* (O'Reilly)
