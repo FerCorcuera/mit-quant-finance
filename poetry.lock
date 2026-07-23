@@ -2830,6 +2830,42 @@ files = [
 cffi = {version = "*", markers = "implementation_name == \"pypy\""}
 
 [[package]]
+name = "quantlib"
+version = "1.43"
+description = "Python bindings for the QuantLib library"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "quantlib-1.43-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:53bf822aef061d6264260350156cda2ac1aa27db1a8a1443ac8a2f81d283ecce"},
+    {file = "quantlib-1.43-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:03dc31c2e4b68b458a47937047c6704ae30c51fff229aa7a009a4c9c7077590a"},
+    {file = "quantlib-1.43-cp314-cp314t-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:70e2bd469d155a3198438e28a89bdd9d6dcc7e260c756c5de7e761f3ccda4cb2"},
+    {file = "quantlib-1.43-cp314-cp314t-manylinux_2_24_i686.manylinux_2_28_i686.whl", hash = "sha256:03f027bab14891a9b599417eacef3116353e385194dd3300dc801166c92bf71c"},
+    {file = "quantlib-1.43-cp314-cp314t-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2c1fb5bcaf4f20704559c79c280a20585387fbe9aa4534d82421c15a1cb4e17f"},
+    {file = "quantlib-1.43-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:ef6cde83c3beff278ed651196b6b802ddf749544d2c6c253cb059b19f39fab90"},
+    {file = "quantlib-1.43-cp314-cp314t-musllinux_1_2_i686.whl", hash = "sha256:577c98ee38e3cafe564daeb22fb9e8628e2fba782eb7afa0134b1e2a6eccb720"},
+    {file = "quantlib-1.43-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:d019ad14efacbec732253c65d1a33f97f22b0a9e0e236e0cb0278cea2a5769cf"},
+    {file = "quantlib-1.43-cp314-cp314t-win32.whl", hash = "sha256:6ee4295d0432d9ab0f0529ba97eda0c80da61cab134576fee62a4ca407cd85c0"},
+    {file = "quantlib-1.43-cp314-cp314t-win_amd64.whl", hash = "sha256:c7b33959457889b6392a7c203a7c6730a301d192dcc60d6839cbbfcfc4336cd0"},
+    {file = "quantlib-1.43-cp39-abi3-macosx_10_13_x86_64.whl", hash = "sha256:cf113464f75500c3f67ec7a6865b9dee1082650b37943a45974d83d9b29a32b1"},
+    {file = "quantlib-1.43-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:85d70b28778afca84b9b6ae74ef05a1069b2dca00e80fc74aa8ddf438259dc0c"},
+    {file = "quantlib-1.43-cp39-abi3-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:3c0ec04adb19660a029d2095609f5a8add1541b1d2bb14a990665738c911770e"},
+    {file = "quantlib-1.43-cp39-abi3-manylinux_2_24_i686.manylinux_2_28_i686.whl", hash = "sha256:9d028659a2557d549766bcebb346a9cacae0b3514bf205ddefadb64f9330bbb4"},
+    {file = "quantlib-1.43-cp39-abi3-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:35cd2c178aa9a30c3b7a9ca050536037c3185afd6728e6a1cf2085adef54464e"},
+    {file = "quantlib-1.43-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:f21eaf656ea5bd26e023a402eda81a6b66338c7a3d1f3dfef3894f05312f7ac6"},
+    {file = "quantlib-1.43-cp39-abi3-musllinux_1_2_i686.whl", hash = "sha256:c2d1680e1bb28bc58fe9d5cd1a966382cc490264368cc77300c9c9a381416d7e"},
+    {file = "quantlib-1.43-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:f9c620de81c8bea76b7bd82a190fdf0393f18812a2c2529351fabc7338b6b3c1"},
+    {file = "quantlib-1.43-cp39-abi3-win32.whl", hash = "sha256:70adba78db6bbb72b5b608af866c2fb3d3e440dc54bee9eb68d757e31c1c2e90"},
+    {file = "quantlib-1.43-cp39-abi3-win_amd64.whl", hash = "sha256:61fcb95e8d7e15dfd23e83104d24ce28d45582a645e7dbce0c248216bf51913b"},
+    {file = "quantlib-1.43-pp311-pypy311_pp73-macosx_10_15_x86_64.whl", hash = "sha256:bf0cd0cc6029378b797b43619a5efd7d69fb22d48a95a3f9b9d0894bed2c67d9"},
+    {file = "quantlib-1.43-pp311-pypy311_pp73-macosx_11_0_arm64.whl", hash = "sha256:59c8af8ce2d26de674fe1033765db90d94476470001d3ed93c33aa5bc3efca68"},
+    {file = "quantlib-1.43-pp311-pypy311_pp73-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:f5e1a4f286187ca858aaf7b2bdd90941b436937955e02c72be69e7653f7619ca"},
+    {file = "quantlib-1.43-pp311-pypy311_pp73-manylinux_2_24_i686.manylinux_2_28_i686.whl", hash = "sha256:3e6e8c9dc37c9f34ebf343e461c3f8a3274c087a112098d766d02083d94ad6d4"},
+    {file = "quantlib-1.43-pp311-pypy311_pp73-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:39db7f7a33f3fa71d50a53451699f9685b2bca0045db7f2d87dc1e24ba68ea0e"},
+    {file = "quantlib-1.43-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:4e0107b25771d72a4744f0cbcd4874117302a82ddcab04213d2eaf6b3d2b723b"},
+]
+
+[[package]]
 name = "referencing"
 version = "0.37.0"
 description = "JSON Referencing + Python"
@@ -3628,4 +3664,4 @@ repair = ["scipy (>=1.6.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14"
-content-hash = "2429d4e4712e543ae79d06f9fe61ccd94db2b304002ae3f9ce2d545d8d610640"
+content-hash = "305c1f7973bd2e78b9f30eec283b414ffa941e9e712cca4044e737d4cd39add0"
