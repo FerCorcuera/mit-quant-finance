@@ -3,6 +3,38 @@ import math
 import random
 
 
+def scenario_analysis(
+    probabilities: np.ndarray,
+    future_prices: np.ndarray,
+    purchase_price: double,
+    cash_payments: double,
+    risk_free_rate: double,
+    initial_investment: double,
+):
+    """
+    We are assumming constant cash paymetns across all scenarios
+    """
+    hpr = (future_prices + cash_payments - purchase_price) / purchase_price
+    expected_return = np.dot(probabilities, hpr, out=None)
+    deviations = hpr - expected_return
+    squared_deviations = deviations**2
+    variance_hpr = np.dot(probabilities, squared_deviations)
+    risk = np.sqrt(variance_hpr)
+    risk_premium = expected_return - risk_free_rate
+    expected_value = initial_investment * (1 + expected_return)
+
+    results = {
+        "HPR": hpr,
+        "Expected_return": expected_return,
+        "Variance_HPR": variance_hpr,
+        "Risk": risk,
+        "Risk_premium": risk_premium,
+        "Expected_value": expected_value,
+    }
+
+    return results
+
+
 class ZeroCouponBond:
     def __init__(self, price, maturity, face_value, compounding_freq):
         """
@@ -68,3 +100,10 @@ print(b.get_annual_percentage_rate())
 print(b.get_continuous_compounding_rate())
 print(b.get_after_tax_rate(0.04, 0.3))
 print(b.get_real_growth(0.04))
+
+
+a = np.array([850, 915, 985])
+b = np.array([0.2, 0.5, 0.3])
+
+result = scenario_analysis(b, a, 900, 75, 0.05, 27000)
+print(result)
