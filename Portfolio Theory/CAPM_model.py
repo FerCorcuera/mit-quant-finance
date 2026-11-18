@@ -2,6 +2,38 @@ from scipy.stats import norm
 import numpy as np
 import math
 import random
+import matplotlib.pyplot as plt
+
+
+def plot_return_distribution(returns: np.ndarray, title: str, compare: bool = False):
+    returns = np.asarray(returns, dtype=float)
+    returns = returns[np.isfinite(returns)]
+
+    mu = np.mean(returns)
+    sigma = np.std(returns, ddof=1)
+
+    x = np.linspace(returns.min(), returns.max(), 500)
+
+    plt.figure(figsize=(10, 5))
+
+    plt.hist(
+        returns,
+        bins=40,
+        density=True,
+        alpha=0.6,
+        label="Empirical returns",
+    )
+
+    if compare:
+        plt.plot(
+            x, norm.pdf(x, loc=mu, scale=sigma), label="Fitted normal distribution"
+        )
+
+    plt.title(title)
+    plt.xlabel("Return")
+    plt.ylabel("Proability Density")
+    plt.legend()
+    plt.show()
 
 
 def geometric_return(
@@ -165,7 +197,20 @@ class ZeroCouponBond:
         return (real_after_tax_rate, real_after_tax_value)
 
 
-returns = np.array([-0.1189, -0.2210, 0.2869, 0.1088, 0.0491])
-
-geo = geometric_return(returns)
-print(geo)
+# annual_returns = np.array([0.2869,0.1088,0.0491])
+# risk_free_rate = 0.06
+#
+# arimetic_avg = np.mean(annual_returns)
+# geometric_avg = geometric_return(annual_returns)
+# squared_devs = ( annual_returns - arimetic_avg ) ** 2
+# sdv = np.std(annual_returns, ddof = 1)
+# corrected_sdv = np.sqrt( squared_devs.sum()/(len(squared_devs) -1 ) )
+# sharp_ratio = ( arimetic_avg - risk_free_rate )/sdv
+# corrected_sharpe_ratio = ( arimetic_avg - risk_free_rate)/corrected_sdv
+#
+# print(f"arimetic average return: {arimetic_avg:.2%}")
+#
+# print(f"geometric average return: {geometric_avg:.2%}")
+# print(f"Standard dev: {sdv:.2%}")
+# print(f" Corrected standard deviation: {corrected_sdv:.2%}")
+# print(f"Shapre Ratio: {sharp_ratio:.2%} vs Corrected sharpe_ratio: {corrected_sharpe_ratio:.2%}")
