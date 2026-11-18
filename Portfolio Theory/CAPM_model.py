@@ -1,6 +1,17 @@
+from scipy.stats import norm
 import numpy as np
 import math
 import random
+
+
+def geometric_return(
+    returns: np.ndarray,
+) -> float:
+    final_growth = np.prod(1 + returns)
+
+    geometric_return = final_growth ** (1 / len(returns)) - 1
+
+    return geometric_return
 
 
 def scenario_analysis(
@@ -33,6 +44,66 @@ def scenario_analysis(
     }
 
     return results
+
+
+def value_at_risk(
+    exposure: float,
+    alpha: float,
+    expected_return: float,
+    volatility: float,
+) -> tuple[float, float]:
+    """We calculate the value at risk under normal distribution assumption
+    It returns:
+    - q: the lower -tail return quantile
+    - var: the corresponding monetary var given the exposure
+    """
+
+    q = norm.ppf(
+        alpha,
+        loc=expected_return,
+        scale=volatility,
+    )
+
+    var = exposure * (-q)
+
+    return (q, var)
+
+
+def lower_partial_standard_deviation(
+    returns: np.ndarray,
+    target_return: float,
+) -> float:
+    shortfalls = np.minimum(returns - target_return, 0)
+    return np.sqrt(np.mean(shortfalls**2))
+
+
+def sortino_ratio(
+    returns: np.ndarray,
+    target_return: float,
+) -> float:
+    expected_excess_return = np.mean(returns) - target_return
+
+    downside_risk = lower_partial_standard_deviation(
+        returns,
+        target_return,
+    )
+
+    return expected_excess_return / downside_risk
+
+
+def negative_three_sigma_frequency(
+    returns: np.ndarray,
+) -> [float, float, float]:
+    mean = np.mean(returns)
+    volatility = np.std(returns, ddof=1)  # for samples and not population metrics
+
+    threshold = mean - 3 * volatility
+
+    empirical_freq = np.mean(returns <= threshold)
+
+    normal_freq = norm.cdf(-3)
+
+    return threshold, empirical_freq, normal_freq
 
 
 class ZeroCouponBond:
@@ -94,16 +165,7 @@ class ZeroCouponBond:
         return (real_after_tax_rate, real_after_tax_value)
 
 
-b = ZeroCouponBond(100 / 1.0580, 1, 100, 1)
-print(b.get_effective_anual_rate())
-print(b.get_annual_percentage_rate())
-print(b.get_continuous_compounding_rate())
-print(b.get_after_tax_rate(0.04, 0.3))
-print(b.get_real_growth(0.04))
+returns = np.array([-0.1189, -0.2210, 0.2869, 0.1088, 0.0491])
 
-
-a = np.array([850, 915, 985])
-b = np.array([0.2, 0.5, 0.3])
-
-result = scenario_analysis(b, a, 900, 75, 0.05, 27000)
-print(result)
+geo = geometric_return(returns)
+print(geo)
