@@ -1,8 +1,8 @@
-from scipy.stats import norm
 import numpy as np
 import math
-import random
 import matplotlib.pyplot as plt
+
+from scipy.stats import norm
 
 
 def plot_return_distribution(returns: np.ndarray, title: str, compare: bool = False):
@@ -49,10 +49,10 @@ def geometric_return(
 def scenario_analysis(
     probabilities: np.ndarray,
     future_prices: np.ndarray,
-    purchase_price: double,
-    cash_payments: double,
-    risk_free_rate: double,
-    initial_investment: double,
+    purchase_price: float,
+    cash_payments: float,
+    risk_free_rate: float,
+    initial_investment: float,
 ):
     """
     We are assumming constant cash paymetns across all scenarios
