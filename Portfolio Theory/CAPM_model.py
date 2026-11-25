@@ -1,7 +1,7 @@
-import numpy as np
 import math
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+import numpy as np
 from scipy.stats import norm
 
 
@@ -48,8 +48,7 @@ def geometric_return(
 
 def scenario_analysis(
     probabilities: np.ndarray,
-    future_prices: np.ndarray,
-    purchase_price: float,
+    returns: np.ndarray,
     cash_payments: float,
     risk_free_rate: float,
     initial_investment: float,
@@ -57,7 +56,7 @@ def scenario_analysis(
     """
     We are assumming constant cash paymetns across all scenarios
     """
-    hpr = (future_prices + cash_payments - purchase_price) / purchase_price
+    hpr = returns
     expected_return = np.dot(probabilities, hpr, out=None)
     deviations = hpr - expected_return
     squared_deviations = deviations**2
