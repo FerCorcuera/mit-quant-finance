@@ -1,21 +1,18 @@
-import pandas as pd
 import numpy as np
-
-from risk import (
-    calc_expected_shortfall,
-    calc_maximum_drawdown,
-    calc_value_at_risk,
-    calc_lower_partial_sdv,
-    calc_sharpe_ratio,
-    calc_sortino_ratio,
-    calc_sigma_tail_frequency,
-)
-
-
+import pandas as pd
 from returns import (
+    calc_annualized_return,
     calc_geometric_return,
     calc_holding_period_return,
-    calc_annualized_return,
+)
+from risk import (
+    calc_expected_shortfall,
+    calc_lower_partial_sdv,
+    calc_maximum_drawdown,
+    calc_sharpe_ratio,
+    calc_sigma_tail_frequency,
+    calc_sortino_ratio,
+    calc_value_at_risk,
 )
 
 
@@ -57,11 +54,14 @@ def perfomance_metrics(
         returns, alpha=0.01, exposure=final_value, parametric=False
     )
 
-    expected_shortfall = calc_expected_shortfall(
+    expected_shortfall_95 = calc_expected_shortfall(
         returns,
-        target_return,
+        nonp_var95[0],
     )
-
+    expected_shortfall_99 = calc_expected_shortfall(
+        returns,
+        nonp_var99[0],
+    )
     excess_return = returns - risk_free_rate
     period_mean_excess_returns = excess_return.mean()
     period_std_excess_returns = excess_return.std()
@@ -82,7 +82,9 @@ def perfomance_metrics(
         "Holding_period_return": hpr,
         "Arimetic_mean": returns_mean,
         "Geometric_mean": geometric_mean,
-        "Annualized_aritmetic_mean": calc_annualized_return(returns_mean),
+        "Annualized_aritmetic_mean": calc_annualized_return(
+            returns_mean, periods_per_year
+        ),
         "Daily_volatiliy": returns_std,
         "Annualized_volatility": returns_std * np.sqrt(periods_per_year),
         "Worst_period_return": returns.min(),
@@ -91,7 +93,8 @@ def perfomance_metrics(
         "Non_Parametric_Var95": nonp_var95,
         "Parametric_VaR99": var99,
         "Non_Parametric_Var99": nonp_var99,
-        "Expected_shortfall": expected_shortfall,
+        "Expected_shortfall_95": expected_shortfall_95,
+        "Expected_shortfall_99": expected_shortfall_99,
         "Period_mean_excess_returns": period_mean_excess_returns,
         "Period_std_excess_returns": period_std_excess_returns,
         "Period_sharpe_ratio": period_sharpe_ratio,

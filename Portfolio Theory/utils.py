@@ -1,8 +1,8 @@
 import argparse
-import requests
-import pandas as pd
-import numpy as np
 
+import numpy as np
+import pandas as pd
+import requests
 
 BASE_URL = "https://fapi.binance.com"
 SYMBOL = "BTCUSDC"
@@ -60,6 +60,12 @@ def calculate_log_returns(df: pd.DataFrame) -> pd.DataFrame:
     result["log_return"] = np.log(result["close"] / result["close"].shift(1))
 
     return result.dropna().reset_index(drop=True)
+
+
+def daily_index(series):
+    series = series.copy()
+    series.index = pd.to_datetime(series.index).tz_localize(None).normalize()
+    return series.sort_index()
 
 
 def main():
